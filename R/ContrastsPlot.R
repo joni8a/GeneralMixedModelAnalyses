@@ -24,10 +24,10 @@ plot_contrasts <- function(model, formula, followup, x_lab = "Follow-Up (Months)
   # Generate a palette with enough colors for the number of contrasts found
   # We use a high-quality palette (Dark2 or Set1) and extend it if needed
   if (n_contrasts <= 8) {
-    palette_colors <- brewer.pal(max(3, n_contrasts), "Dark2")[1:n_contrasts]
+    palette_colors <- RColorBrewer::brewer.pal(max(3, n_contrasts), "Dark2")[1:n_contrasts]
   } else {
     # If huge number of contrasts, use a larger palette
-    palette_colors <- colorRampPalette(brewer.pal(8, "Dark2"))(n_contrasts)
+    palette_colors <- grDevices::colorRampPalette(RColorBrewer::brewer.pal(8, "Dark2"))(n_contrasts)
   }
   
   # Create a NAMED vector. This matches specific colors to specific names.
