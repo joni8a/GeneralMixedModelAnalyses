@@ -1,18 +1,43 @@
 Package: GeneralMixedModelAnalyses
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Analysis and Reporting Tools for Mixed-Effects Models
 Version: 0.1.0
 Authors@R: c(
     person(
-      "Jane", "Doe",
-      email = "jane@example.com",
+      "Jonathan", "Jürgens-Lahnstein",
+      email = "jonjur@clin.au.dk.com",
       role = c("aut", "cre")
     )
   )
-Description: More about what it does (maybe more than one line).
-    Continuation lines should be indented.
-License: What license is it under?
+Description: Provides functions for analyzing and visualizing results from linear 
+    mixed-effects models (lme4). Includes tools for estimated marginal means (emmeans), 
+    pairwise contrasts, change analysis (difference of differences), residual diagnostics, 
+    and automated Word report generation. Designed for longitudinal research studies.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.0
 URL: https://github.com/joni8a/GeneralMixedModelAnalyses
 BugReports: https://github.com/joni8a/GeneralMixedModelAnalyses/issues
+Depends: 
+    R (>= 4.0.0)
+Imports:
+    lme4,
+    emmeans,
+    ggplot2,
+    ggrepel,
+    dplyr,
+    flextable,
+    officer,
+    grid,
+    gridExtra,
+    broom.mixed,
+    RColorBrewer,
+    methods
+Suggests:
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
+Config/testthat/edition: 3
+VignetteBuilder: knitr
