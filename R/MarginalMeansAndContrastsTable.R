@@ -1,10 +1,5 @@
 # MarginalMeansAndContrastsTable.R
 
-library(emmeans)
-library(dplyr)
-library(flextable)
-library(officer)
-
 #' @export
 table_emm_contrasts <- function(model, formula, followup) {
   # 1. Setup variables and data

@@ -2,11 +2,6 @@
 # This script provides functions to calculate and visualize 
 # "Differences of Differences" for dynamic RSA models.
 
-library(emmeans)
-library(dplyr)
-library(flextable)
-library(officer)
-
 #' @export
 table_change_analysis <- function(model_container, formula, followup, intervals) {
   
@@ -22,6 +17,16 @@ table_change_analysis <- function(model_container, formula, followup, intervals)
   for (val in intervals) {
     start <- val[1]
     end   <- val[2]
+    
+    # Validate that start and end values exist in followup
+    if (!(start %in% followup)) {
+      stop("Interval start value '", start, "' not found in followup: ",
+           paste(followup, collapse = ", "))
+    }
+    if (!(end %in% followup)) {
+      stop("Interval end value '", end, "' not found in followup: ",
+           paste(followup, collapse = ", "))
+    }
     
     vec <- numeric(length(followup))
     vec[which(followup == end)]   <- 1
@@ -47,11 +52,12 @@ table_change_analysis <- function(model_container, formula, followup, intervals)
   tbl_data <- df_res %>%
     as_tibble() %>% 
     
-    # RENAME BY POSITION: emmeans often renames columns in interactions 
-    # (e.g., "Phase_custom"). Standardizing them here ensures select() won't fail.
+    # RENAME BY PATTERN: emmeans names interaction columns as "<var>_<method>"
+    # (e.g., "Phase_custom", "BearingType_pairwise"). Match by variable name prefix
+    # instead of relying on fragile column positions.
     rename(
-      !!grouping_var := 1,
-      !!factorVariable := 2
+      !!grouping_var   := matches(paste0("^", grouping_var, "_")),
+      !!factorVariable := matches(paste0("^", factorVariable, "_"))
     ) %>%
     
     # Round numeric columns for cleaner text generation
@@ -113,8 +119,7 @@ table_change_analysis <- function(model_container, formula, followup, intervals)
     ) %>%
   
     # -- F. CLEANUP --
-    delete_part(part = "footer") %>% 
-    colformat_double(j = "p.value", digits = 3) 
+    delete_part(part = "footer")
   
   # Final Step: Hide the raw p.value column (used for bolding logic) from the final output
   ft <- ft %>% void(j = "p.value", part = "all")

@@ -1,7 +1,4 @@
-library(ggplot2)
-library(ggrepel)
-library(grid)
-library(gridExtra)
+# Residuals.R
 
 residuals_qq_plot <- function(model) {
   model@data$residuals <- residuals(model@lm)

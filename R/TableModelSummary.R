@@ -1,8 +1,5 @@
 #' @export
 table_model_summary <- function(model, digits = 3) {
-  require(flextable)
-  require(broom.mixed)
-  require(dplyr)
 
   # 1️⃣ Model info ----
   model_formula <- deparse(formula(model))

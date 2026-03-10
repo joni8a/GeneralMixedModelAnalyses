@@ -1,9 +1,4 @@
-library(ggplot2)
-library(grid)
-library(officer)
-library(flextable)
-library(dplyr)
-library(emmeans)
+# ReportToWord.R
 
 #' @export
 report_to_word <- function(title,

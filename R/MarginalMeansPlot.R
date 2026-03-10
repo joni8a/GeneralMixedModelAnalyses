@@ -1,7 +1,4 @@
-library(dplyr)
-library(ggplot2)
-library(emmeans)
-library(ggrepel)
+# MarginalMeansPlot.R
 
 #' @export
 plot_marginal_means <- function(model, formula, followup, 

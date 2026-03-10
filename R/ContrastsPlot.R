@@ -1,7 +1,4 @@
-library(ggplot2)
-library(emmeans)
-library(dplyr)
-library(RColorBrewer) # Ensure this is loaded for color palette generation
+# ContrastsPlot.R
 
 #' @export
 plot_contrasts <- function(model, formula, followup, x_lab = "Follow-Up (Months)") {
