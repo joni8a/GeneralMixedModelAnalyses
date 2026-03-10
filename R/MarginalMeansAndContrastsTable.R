@@ -10,6 +10,10 @@ table_emm_contrasts <- function(model, formula, followup) {
   
   # 2. Get EMMeans and Contrasts
   emm <- emmeans(model@lm, formula, at = at_list)
+
+  # Back-transform to original scale if the model was fit on log-transformed data
+  emm <- .maybe_regrid(emm, model)
+
   emm_df <- as.data.frame(emm)
   contrast_df <- as.data.frame(contrast(emm, method = "pairwise", infer = c(TRUE, TRUE)))
 
@@ -19,7 +23,10 @@ table_emm_contrasts <- function(model, formula, followup) {
   df <- merge(emm_df, contrast_df, by = grouping_var, suffix = c("_emm", "_contrast"))
 
   caption <- paste0(model@predictor_variable, ", Marginal Means (95% CI) and Contrasts (95% CI).")
-  footnote <- paste0(model@name, ". ", deparse(formula(model@lm)), collapse = " ")
+  log_note <- .log_note(model)
+  footnote <- paste0(model@name, ". ", deparse(formula(model@lm)),
+                     if (nzchar(log_note)) paste0(" ", log_note),
+                     collapse = " ")
 
   # 4. Calculate formatting indices for the table
   line_indices <- df %>%

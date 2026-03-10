@@ -56,7 +56,17 @@ report_to_word <- function(title,
 
   # 2. Build Word Document --------------------------------------------------
   
-  doc <- read_docx() %>%
+  doc <- read_docx()
+
+  # Add log-transform note at the top of the document if applicable
+  log_note <- .log_note(model)
+  if (nzchar(log_note)) {
+    doc <- doc %>%
+      body_add_par(log_note, style = "Normal") %>%
+      body_add_break()
+  }
+
+  doc <- doc %>%
     # -- Residuals --
     body_add_par("Residual Analyses", style = "heading 1") %>%
     body_add_img(grob_path_residual, width = 6, height = 3.6) %>%
@@ -126,6 +136,10 @@ report_to_word <- function(title,
     
     # Calculate emmeans and contrasts internally
     raw_emm <- emmeans(model@lm, emm_formula, at = at_list)
+
+    # Back-transform to original scale if the model was fit on log-transformed data
+    raw_emm <- .maybe_regrid(raw_emm, model)
+
     raw_contrasts <- contrast(raw_emm, method = "pairwise", infer = c(TRUE, TRUE))
     
     doc <- doc %>%

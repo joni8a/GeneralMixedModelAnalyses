@@ -43,6 +43,9 @@ table_change_analysis <- function(model_container, formula, followup, intervals)
   at_list <- setNames(list(followup), grouping_var)
   emm <- emmeans(model, formula, at = at_list)
 
+  # Back-transform to original scale if the model was fit on log-transformed data
+  emm <- .maybe_regrid(emm, model_container)
+
   # ------------------------------------------------------------------
   # 4A. Per-group changes (change within each level of the factor)
   # ------------------------------------------------------------------

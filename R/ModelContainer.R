@@ -7,7 +7,9 @@ ModelContainer <- setClass(
     lm = "ANY",
     data = "data.frame",
     group = "character",
-    group_mapping = "list"
+    group_mapping = "list",
+    log_transform = "logical",
+    log_offset = "numeric"
   )
 )
 
@@ -17,7 +19,9 @@ NewModelContainer <- function(name,
                               lm,
                               data,
                               group,
-                              group_mapping) {
+                              group_mapping,
+                              log_transform = FALSE,
+                              log_offset = 1) {
   
 
   # Validate group_mapping structure
@@ -62,5 +66,7 @@ NewModelContainer <- function(name,
       lm = lm,
       data = data,
       group = group,
-      group_mapping = group_mapping)
+      group_mapping = group_mapping,
+      log_transform = log_transform,
+      log_offset = log_offset)
 }

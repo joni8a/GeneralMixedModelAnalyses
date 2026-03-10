@@ -13,7 +13,9 @@ plot_violin_distribution <- function(model_container, formula, x_lab = "Follow-U
   # 2. Define labels and titles
   title  <- paste0(y_var, " Distribution by ", factorVariable)
   y_lab  <- paste0(y_var, " (Raw Values)")
-  caption <- paste0(model_container@name, ". Distribution analysis.")
+  log_note <- .log_note(model_container)
+  caption <- paste0(model_container@name, ". Distribution analysis.",
+                    if (nzchar(log_note)) paste0("\n", log_note))
 
   # 3. Build the Plot
   p <- df %>%
