@@ -15,7 +15,9 @@ table_emm_contrasts <- function(model, formula, followup) {
   emm <- .maybe_regrid(emm, model)
 
   emm_df <- as.data.frame(emm)
+  emm_df <- .standardize_emm_cols(emm_df)
   contrast_df <- as.data.frame(contrast(emm, method = "pairwise", infer = c(TRUE, TRUE)))
+  contrast_df <- .standardize_emm_cols(contrast_df)
 
   # 3. Merge them into one dataframe
   # We print grouping_var just for debugging visibility in console

@@ -52,6 +52,7 @@ table_change_analysis <- function(model_container, formula, followup, intervals)
   group_changes <- contrast(emm, method = custom_contrasts, by = factorVariable)
   group_df <- summary(group_changes, infer = c(TRUE, TRUE)) %>%
     as_tibble() %>%
+    .standardize_emm_cols() %>%
     mutate(across(where(is.numeric), ~ round(.x, 3))) %>%
     mutate(
       Interval             = contrast,
@@ -75,6 +76,7 @@ table_change_analysis <- function(model_container, formula, followup, intervals)
   diff_of_difs <- contrast(emm, interaction = interaction_specs)
   diff_df <- summary(diff_of_difs, infer = c(TRUE, TRUE)) %>%
     as_tibble() %>%
+    .standardize_emm_cols() %>%
     rename(
       Interval := matches(paste0("^", grouping_var, "_")),
       Group    := matches(paste0("^", factorVariable, "_"))

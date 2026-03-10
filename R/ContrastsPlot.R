@@ -12,6 +12,7 @@ plot_contrasts <- function(model, formula, followup, x_lab = "Follow-Up (Months)
   emm <- .maybe_regrid(emm, model)
 
   contrast_df <- as.data.frame(contrast(emm, method = "pairwise", infer = c(TRUE, TRUE)))
+  contrast_df <- .standardize_emm_cols(contrast_df)
   
   title <- paste0(model@predictor_variable, " Estimated Contrasts.")
   y_lab <- paste0(model@predictor_variable, " Mean Difference (95% CI)")

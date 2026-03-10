@@ -150,6 +150,7 @@ report_to_word <- function(title,
     
     # Raw Marginal Means
     raw_emm_tbl <- as.data.frame(raw_emm) %>%
+      .standardize_emm_cols() %>%
       mutate(across(where(is.numeric), ~ round(.x, 4))) %>%
       flextable() %>%
       set_caption("Raw Estimated Marginal Means") %>%
@@ -163,6 +164,7 @@ report_to_word <- function(title,
     
     # Raw Contrasts
     raw_contrast_tbl <- as.data.frame(raw_contrasts) %>%
+      .standardize_emm_cols() %>%
       mutate(across(where(is.numeric), ~ round(.x, 4))) %>%
       flextable() %>%
       set_caption("Raw Pairwise Contrasts") %>%

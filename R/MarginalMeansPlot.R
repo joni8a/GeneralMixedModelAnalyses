@@ -22,6 +22,7 @@ plot_marginal_means <- function(model, formula, followup,
   emm <- .maybe_regrid(emm, model)
 
   emm_df <- as.data.frame(emm)
+  emm_df <- .standardize_emm_cols(emm_df)
 
   title <- paste0(outcome_var, " Estimated Marginal Means")
   y_lab <- paste0(outcome_var, " Mean (95% CI)")
