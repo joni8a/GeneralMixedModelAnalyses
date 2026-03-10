@@ -1,7 +1,7 @@
 Package: GeneralMixedModelAnalyses
 Type: Package
 Title: Analysis and Reporting Tools for Mixed-Effects Models
-Version: 0.1.0
+Version: 0.2.0
 Authors@R: c(
     person(
       "Jonathan", "Jürgens-Lahnstein",
