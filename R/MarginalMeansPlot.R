@@ -8,7 +8,9 @@ plot_marginal_means <- function(model, formula, followup,
                                 n_similar = 0, 
                                 similarity_metric = "euclidean",
                                 label_ids = FALSE,
-                                return_ids = FALSE) { 
+                                return_ids = FALSE,
+                                y_min = NULL,
+                                y_max = NULL) { 
   
   # 1. Setup variables
   grouping_var <- deparse(formula[[2]][[3]])   
@@ -176,6 +178,11 @@ plot_marginal_means <- function(model, formula, followup,
           plot.background = element_rect(fill = "transparent", colour = NA),
           legend.background = element_rect(fill = "transparent", colour = NA),
           legend.box.background = element_rect(fill = "transparent", colour = NA))
+
+  # Apply fixed y-axis limits if provided
+  if (!is.null(y_min) || !is.null(y_max)) {
+    p <- p + coord_cartesian(ylim = c(y_min, y_max))
+  }
 
   # --- OUTPUT LOGIC ---
   
