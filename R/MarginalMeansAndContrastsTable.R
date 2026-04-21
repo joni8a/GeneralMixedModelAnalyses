@@ -151,8 +151,9 @@ table_emm_contrasts <- function(model,
     }
 
     # Normalize a contrast label for robust matching:
-    # collapse multiple spaces to one and trim edges, preserving spaces inside names.
-    .norm <- function(x) trimws(gsub("\\s+", " ", x))
+    # strip parentheses (emmeans wraps names containing hyphens in parens),
+    # collapse multiple spaces to one, and trim edges.
+    .norm <- function(x) trimws(gsub("\\s+", " ", gsub("[()]", "", x)))
 
     contrast_key_1 <- .norm(paste0(group_1_raw, " - ", group_2_raw))
     contrast_key_2 <- .norm(paste0(group_2_raw, " - ", group_1_raw))
