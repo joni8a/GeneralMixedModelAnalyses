@@ -1,7 +1,41 @@
 # MarginalMeansAndContrastsTable.R
 
+#' Create Estimated Marginal Means and Contrasts Table
+#'
+#' Builds the default EMM/contrast table, or an optional compact layout with
+#' one row per phase and user-selected group columns.
+#'
+#' @param model A `ModelContainer` object.
+#' @param formula An emmeans formula (for example `~ Group * Phase`).
+#' @param followup Follow-up values to include for the phase/grouping axis.
+#' @param optional_format Logical flag. If `FALSE` (default), returns the
+#'   standard table. If `TRUE`, returns the optional 4-column layout.
+#' @param group_1 First selected group for optional format. Used as the left
+#'   group column and as the numerator in mean difference (`group_1 - group_2`).
+#' @param group_2 Second selected group for optional format.
+#'
+#' @return A `flextable` object.
+#'
+#' @examples
+#' # Standard layout (default)
+#' # tbl <- table_emm_contrasts(model, ~ BearingType * Phase, c(0, 6, 12))
+#'
+#' # Optional compact layout
+#' # tbl_opt <- table_emm_contrasts(
+#' #   model = model,
+#' #   formula = ~ BearingType * Phase,
+#' #   followup = c(0, 6, 12),
+#' #   optional_format = TRUE,
+#' #   group_1 = "Continues migrators",
+#' #   group_2 = "Non-continuous migrators"
+#' # )
 #' @export
-table_emm_contrasts <- function(model, formula, followup) {
+table_emm_contrasts <- function(model,
+                                formula,
+                                followup,
+                                optional_format = FALSE,
+                                group_1 = NULL,
+                                group_2 = NULL) {
   # 1. Setup variables and data
   grouping_var <- deparse(formula[[2]][[3]]) # e.g., "Phase"
   factorVariable <- deparse(formula[[2]][[2]]) # e.g., "BearingType"
@@ -30,16 +64,156 @@ table_emm_contrasts <- function(model, formula, followup) {
                      if (nzchar(log_note)) paste0(" ", log_note),
                      collapse = " ")
 
+  if (isTRUE(optional_format)) {
+    available_groups <- unique(as.character(model@data[[factorVariable]]))
+
+    if (is.null(group_1) || is.null(group_2)) {
+      stop("For optional_format = TRUE, both group_1 and group_2 must be provided.")
+    }
+
+    resolve_group <- function(x, available, group_mapping) {
+      x_chr <- as.character(x)
+      if (x_chr %in% available) {
+        return(x_chr)
+      }
+
+      if (!is.null(group_mapping) && !is.null(group_mapping$labels)) {
+        labels_vec <- group_mapping$labels
+        if (is.null(names(labels_vec)) && !is.null(group_mapping$colors)) {
+          names(labels_vec) <- names(group_mapping$colors)
+        }
+        if (!is.null(names(labels_vec))) {
+          hit <- names(labels_vec)[labels_vec == x_chr]
+          if (length(hit) > 0) {
+            return(hit[[1]])
+          }
+        }
+      }
+
+      stop(
+        "Group '", x_chr, "' not found. Available data groups: ",
+        paste(available, collapse = ", "),
+        "."
+      )
+    }
+
+    group_1_raw <- resolve_group(group_1, available_groups, model@group_mapping)
+    group_2_raw <- resolve_group(group_2, available_groups, model@group_mapping)
+
+    if (identical(group_1_raw, group_2_raw)) {
+      stop("group_1 and group_2 must be different groups.")
+    }
+
+    labels_vec <- NULL
+    if (!is.null(model@group_mapping) && !is.null(model@group_mapping$labels)) {
+      labels_vec <- model@group_mapping$labels
+      if (is.null(names(labels_vec)) && !is.null(model@group_mapping$colors)) {
+        names(labels_vec) <- names(model@group_mapping$colors)
+      }
+    }
+
+    group_1_label <- if (!is.null(labels_vec) && group_1_raw %in% names(labels_vec)) {
+      labels_vec[[group_1_raw]]
+    } else {
+      group_1_raw
+    }
+    group_2_label <- if (!is.null(labels_vec) && group_2_raw %in% names(labels_vec)) {
+      labels_vec[[group_2_raw]]
+    } else {
+      group_2_raw
+    }
+
+    emm_small <- emm_df %>%
+      select(!!sym(grouping_var), !!sym(factorVariable), emmean, lower.CL, upper.CL) %>%
+      mutate(
+        group_raw = as.character(!!sym(factorVariable)),
+        mean_ci = paste0(
+          round(emmean, 3), " (",
+          round(lower.CL, 3), " - ",
+          round(upper.CL, 3), ")"
+        )
+      )
+
+    g1_df <- emm_small %>%
+      filter(group_raw == group_1_raw) %>%
+      select(!!sym(grouping_var), mean_ci)
+    g2_df <- emm_small %>%
+      filter(group_raw == group_2_raw) %>%
+      select(!!sym(grouping_var), mean_ci)
+
+    group_1_col <- paste0(group_1_label, " (Mean, 95% CI)")
+    group_2_col <- paste0(group_2_label, " (Mean, 95% CI)")
+    names(g1_df)[2] <- group_1_col
+    names(g2_df)[2] <- group_2_col
+
+    if (!"contrast" %in% names(contrast_df)) {
+      stop("Expected a 'contrast' column in pairwise contrast output.")
+    }
+
+    contrast_key_1 <- paste0(group_1_raw, "-", group_2_raw)
+    contrast_key_2 <- paste0(group_2_raw, "-", group_1_raw)
+
+    diff_df <- contrast_df %>%
+      mutate(
+        contrast_key = gsub("\\s+", "", contrast),
+        sign_flip = contrast_key == contrast_key_2,
+        estimate_adj = if_else(sign_flip, -estimate, estimate),
+        lower_adj = if_else(sign_flip, -upper.CL, lower.CL),
+        upper_adj = if_else(sign_flip, -lower.CL, upper.CL)
+      ) %>%
+      filter(contrast_key %in% c(contrast_key_1, contrast_key_2)) %>%
+      mutate(
+        `Mean Difference (95% CI)` = paste0(
+          round(estimate_adj, 3), " (",
+          round(lower_adj, 3), " - ",
+          round(upper_adj, 3), ")"
+        )
+      ) %>%
+      group_by(!!sym(grouping_var)) %>%
+      slice(1) %>%
+      ungroup() %>%
+      select(!!sym(grouping_var), `Mean Difference (95% CI)`)
+
+    if (nrow(diff_df) == 0) {
+      stop(
+        "Could not find pairwise contrasts for the selected groups: ",
+        group_1_raw, " and ", group_2_raw, "."
+      )
+    }
+
+    phase_df <- data.frame(phase_value = followup)
+    names(phase_df) <- grouping_var
+
+    tbl_opt <- phase_df %>%
+      left_join(g1_df, by = grouping_var) %>%
+      left_join(g2_df, by = grouping_var) %>%
+      left_join(diff_df, by = grouping_var) %>%
+      rename(Phase = !!sym(grouping_var))
+
+    ft_opt <- tbl_opt %>%
+      flextable() %>%
+      flextable::font(fontname = "Arial") %>%
+      fontsize(size = 10, part = "body") %>%
+      set_caption(as_paragraph(as_b(caption)), align_with_table = FALSE) %>%
+      add_footer_row(value = as_paragraph(footnote), colwidth = c(4)) %>%
+      fontsize(part = "footer", size = 8) %>%
+      width(j = "Phase", width = 1.0) %>%
+      width(j = group_1_col, width = 2.0) %>%
+      width(j = group_2_col, width = 2.0) %>%
+      width(j = "Mean Difference (95% CI)", width = 2.0) %>%
+      align(j = "Phase", align = "left", part = "all") %>%
+      align(j = c(group_1_col, group_2_col, "Mean Difference (95% CI)"), align = "center", part = "all") %>%
+      fix_border_issues()
+
+    return(ft_opt)
+  }
+
   # 4. Calculate formatting indices for the table
   line_indices <- df %>%
     group_by(!!sym(grouping_var)) %>%
     summarise(last_row = n()) %>%
     mutate(cum_row = cumsum(last_row)) %>%
     pull(cum_row)
-
-  # 5. Extract original levels dynamically to avoid NA errors
-  # This handles both Factor and Character data types safely
-  original_levels <- levels(as.factor(model@data[[factorVariable]]))
 
   # 6. Build the Table
   tbl <- df %>%

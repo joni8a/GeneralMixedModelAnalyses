@@ -1,5 +1,49 @@
 # ReportToWord.R
 
+#' Create a Word Report for Mixed-Model Outputs
+#'
+#' Compiles plots and tables into a `.docx` report. The EMM table can be
+#' generated from wrapper settings and optionally displayed in a compact
+#' 4-column format.
+#'
+#' @param title Report title/file stem.
+#' @param path Output directory.
+#' @param model A `ModelContainer` object.
+#' @param fn_residual_analyses Residual diagnostics grob.
+#' @param fn_emm_contrast_tbl Precomputed EMM/contrast table (`flextable`).
+#' @param fn_plot_marginal_means Marginal means plot.
+#' @param fn_plot_contrasts Contrast plot.
+#' @param fn_table_model_summary List of model summary `flextable` objects.
+#' @param fn_table_change Optional change-analysis `flextable`.
+#' @param fn_violin_chart Optional violin chart.
+#' @param emm_formula Formula used to compute EMMs inside the wrapper when
+#'   needed.
+#' @param followup Follow-up values used for EMM calculations.
+#' @param include_raw_emmeans Logical; include raw emmeans/contrast tables.
+#' @param optional_emm_format Logical flag (default `FALSE`). If `TRUE`, the
+#'   wrapper regenerates the EMM table in optional compact format.
+#' @param optional_emm_group_1 First selected group for optional EMM format.
+#' @param optional_emm_group_2 Second selected group for optional EMM format.
+#'
+#' @examples
+#' # Wrapper-driven optional EMM table formatting
+#' # report_to_word(
+#' #   title = "MyReport",
+#' #   path = tempdir(),
+#' #   model = model,
+#' #   fn_residual_analyses = res_plot,
+#' #   fn_emm_contrast_tbl = NULL,
+#' #   fn_plot_marginal_means = emm_plot,
+#' #   fn_plot_contrasts = contrast_plot,
+#' #   fn_table_model_summary = summary_tbls,
+#' #   fn_table_change = NULL,
+#' #   fn_violin_chart = NULL,
+#' #   emm_formula = ~ BearingType * Phase,
+#' #   followup = c(0, 6, 12),
+#' #   optional_emm_format = TRUE,
+#' #   optional_emm_group_1 = "Continues migrators",
+#' #   optional_emm_group_2 = "Non-continuous migrators"
+#' # )
 #' @export
 report_to_word <- function(title,
                            path,
@@ -13,8 +57,33 @@ report_to_word <- function(title,
                            fn_violin_chart,
                            emm_formula = NULL,
                            followup = NULL,
-                           include_raw_emmeans = FALSE
+                           include_raw_emmeans = FALSE,
+                           optional_emm_format = FALSE,
+                           optional_emm_group_1 = NULL,
+                           optional_emm_group_2 = NULL
                            ) {
+
+  # Optional: (re)generate EMM table from wrapper-level settings.
+  if (isTRUE(optional_emm_format)) {
+    if (is.null(emm_formula) || is.null(followup)) {
+      stop("For optional_emm_format = TRUE, emm_formula and followup must be provided.")
+    }
+    fn_emm_contrast_tbl <- table_emm_contrasts(
+      model = model,
+      formula = emm_formula,
+      followup = followup,
+      optional_format = TRUE,
+      group_1 = optional_emm_group_1,
+      group_2 = optional_emm_group_2
+    )
+  } else if (is.null(fn_emm_contrast_tbl) && !is.null(emm_formula) && !is.null(followup)) {
+    fn_emm_contrast_tbl <- table_emm_contrasts(
+      model = model,
+      formula = emm_formula,
+      followup = followup,
+      optional_format = FALSE
+    )
+  }
 
   # 1. Save Images to Disk --------------------------------------------------
 
