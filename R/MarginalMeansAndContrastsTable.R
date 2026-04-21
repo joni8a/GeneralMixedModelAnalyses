@@ -150,18 +150,19 @@ table_emm_contrasts <- function(model,
       stop("Expected a 'contrast' column in pairwise contrast output.")
     }
 
-    contrast_key_1 <- paste0(group_1_raw, "-", group_2_raw)
-    contrast_key_2 <- paste0(group_2_raw, "-", group_1_raw)
+    # emmeans formats contrasts as "Group 1 - Group 2" (spaces around dash).
+    # Match directly against that format to avoid stripping spaces within names.
+    contrast_key_1 <- paste0(group_1_raw, " - ", group_2_raw)
+    contrast_key_2 <- paste0(group_2_raw, " - ", group_1_raw)
 
     diff_df <- contrast_df %>%
       mutate(
-        contrast_key = gsub("\\s+", "", contrast),
-        sign_flip = contrast_key == contrast_key_2,
+        sign_flip = contrast == contrast_key_2,
         estimate_adj = if_else(sign_flip, -estimate, estimate),
         lower_adj = if_else(sign_flip, -upper.CL, lower.CL),
         upper_adj = if_else(sign_flip, -lower.CL, upper.CL)
       ) %>%
-      filter(contrast_key %in% c(contrast_key_1, contrast_key_2)) %>%
+      filter(contrast %in% c(contrast_key_1, contrast_key_2)) %>%
       mutate(
         `Mean Difference (95% CI)` = paste0(
           round(estimate_adj, 3), " (",
