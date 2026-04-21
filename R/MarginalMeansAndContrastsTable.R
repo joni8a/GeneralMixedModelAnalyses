@@ -150,19 +150,26 @@ table_emm_contrasts <- function(model,
       stop("Expected a 'contrast' column in pairwise contrast output.")
     }
 
-    # emmeans formats contrasts as "Group 1 - Group 2" (spaces around dash).
-    # Match directly against that format to avoid stripping spaces within names.
-    contrast_key_1 <- paste0(group_1_raw, " - ", group_2_raw)
-    contrast_key_2 <- paste0(group_2_raw, " - ", group_1_raw)
+    # Normalize a contrast label for robust matching:
+    # collapse multiple spaces to one and trim edges, preserving spaces inside names.
+    .norm <- function(x) trimws(gsub("\\s+", " ", x))
+
+    contrast_key_1 <- .norm(paste0(group_1_raw, " - ", group_2_raw))
+    contrast_key_2 <- .norm(paste0(group_2_raw, " - ", group_1_raw))
+
+    # Print actual contrast labels from emmeans to aid diagnosis if matching fails.
+    message("Available contrast labels: ",
+            paste(unique(.norm(as.character(contrast_df$contrast))), collapse = " | "))
 
     diff_df <- contrast_df %>%
       mutate(
-        sign_flip = contrast == contrast_key_2,
-        estimate_adj = if_else(sign_flip, -estimate, estimate),
-        lower_adj = if_else(sign_flip, -upper.CL, lower.CL),
-        upper_adj = if_else(sign_flip, -lower.CL, upper.CL)
+        contrast_norm = .norm(as.character(contrast)),
+        sign_flip     = contrast_norm == contrast_key_2,
+        estimate_adj  = if_else(sign_flip, -estimate, estimate),
+        lower_adj     = if_else(sign_flip, -upper.CL, lower.CL),
+        upper_adj     = if_else(sign_flip, -lower.CL, upper.CL)
       ) %>%
-      filter(contrast %in% c(contrast_key_1, contrast_key_2)) %>%
+      filter(contrast_norm %in% c(contrast_key_1, contrast_key_2)) %>%
       mutate(
         `Mean Difference (95% CI)` = paste0(
           round(estimate_adj, 3), " (",
@@ -177,8 +184,10 @@ table_emm_contrasts <- function(model,
 
     if (nrow(diff_df) == 0) {
       stop(
-        "Could not find pairwise contrasts for the selected groups: ",
-        group_1_raw, " and ", group_2_raw, "."
+        "Could not find pairwise contrasts for '", group_1_raw, "' and '", group_2_raw, "'.\n",
+        "Expected one of:\n  '", contrast_key_1, "'\n  '", contrast_key_2, "'\n",
+        "Actual contrast labels from emmeans:\n  ",
+        paste(unique(.norm(as.character(contrast_df$contrast))), collapse = "\n  ")
       )
     }
 
