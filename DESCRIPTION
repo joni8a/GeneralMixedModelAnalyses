@@ -15,9 +15,7 @@ Description: Provides functions for analyzing and visualizing results from linea
     and automated Word report generation. Designed for longitudinal research studies.
 License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 URL: https://github.com/joni8a/GeneralMixedModelAnalyses
 BugReports: https://github.com/joni8a/GeneralMixedModelAnalyses/issues
 Depends: 
@@ -28,6 +26,8 @@ Imports:
     ggplot2,
     ggrepel,
     dplyr,
+    tidyr,
+    rlang,
     flextable,
     officer,
     grid,
@@ -41,3 +41,4 @@ Suggests:
     rmarkdown
 Config/testthat/edition: 3
 VignetteBuilder: knitr
+Config/roxygen2/version: 8.0.0

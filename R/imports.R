@@ -8,6 +8,7 @@
 #' @import emmeans
 #' @import flextable
 #' @import officer
+#' @importFrom tidyr pivot_wider
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom grid textGrob gpar unit unit.c grid.draw
 #' @importFrom gridExtra arrangeGrob
