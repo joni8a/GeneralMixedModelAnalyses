@@ -50,8 +50,10 @@ table_emm_contrasts <- function(model,
 
   emm_df <- as.data.frame(emm)
   emm_df <- .standardize_emm_cols(emm_df)
+  emm_df <- .apply_response_scale(emm_df, model)
   contrast_df <- as.data.frame(contrast(emm, method = "pairwise", infer = c(TRUE, TRUE)))
   contrast_df <- .standardize_emm_cols(contrast_df)
+  contrast_df <- .apply_response_scale(contrast_df, model)
 
   # 3. Merge them into one dataframe
   # We print grouping_var just for debugging visibility in console

@@ -105,7 +105,8 @@ table_emm_contrasts_combined <- function(models,
 
     # ---- group means ----
     means_df <- summary(emm, infer = c(TRUE, FALSE)) %>%
-      as_tibble() %>% std_cols()
+      as_tibble() %>% std_cols() %>%
+      .apply_response_scale(mc)
 
     if (is.null(grp_levels)) {
       lv <- means_df[[group_var]]
@@ -130,6 +131,7 @@ table_emm_contrasts_combined <- function(models,
     ctr    <- emmeans::contrast(emm, method = "pairwise", by = by_var)
     ctr_df <- summary(ctr, infer = c(TRUE, TRUE)) %>%
       as_tibble() %>% std_cols() %>%
+      .apply_response_scale(mc) %>%
       mutate(
         .phase                 = as.character(.data[[by_var]]),
         !!paste0(key, "_diff") := fmt_ci(estimate, lower.CL, upper.CL),

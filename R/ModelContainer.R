@@ -9,7 +9,9 @@ ModelContainer <- setClass(
     group = "character",
     group_mapping = "list",
     log_transform = "logical",
-    log_offset = "numeric"
+    log_offset = "numeric",
+    transform = "character",    # "none", "log", "beta"
+    response_scale = "numeric"  # multiply back-transformed values (1 = no scaling, 100 for KOOS/beta)
   )
 )
 
@@ -21,8 +23,21 @@ NewModelContainer <- function(name,
                               group,
                               group_mapping,
                               log_transform = FALSE,
-                              log_offset = 1) {
+                              log_offset = 1,
+                              transform = "none",
+                              response_scale = 1) {
   
+
+  # Backward compatibility: log_transform = TRUE promotes to transform = "log"
+  if (isTRUE(log_transform) && transform == "none") {
+    transform <- "log"
+  }
+
+  # Validate transform
+  valid_transforms <- c("none", "log", "beta")
+  if (!transform %in% valid_transforms) {
+    stop("transform must be one of: ", paste(valid_transforms, collapse = ", "))
+  }
 
   # Validate group_mapping structure
   if (!is.null(group_mapping)) {
@@ -68,5 +83,7 @@ NewModelContainer <- function(name,
       group = group,
       group_mapping = group_mapping,
       log_transform = log_transform,
-      log_offset = log_offset)
+      log_offset = log_offset,
+      transform = transform,
+      response_scale = response_scale)
 }
