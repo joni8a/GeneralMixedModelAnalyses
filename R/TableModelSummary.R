@@ -42,16 +42,28 @@ table_model_summary <- function(model, digits = 3) {
     fix_border_issues()
 
   # 3️⃣ Random effects ----
-  random <- as.data.frame(VarCorr(model))
-  random <- random |>
-    mutate(across(where(is.numeric), round, digits = digits)) |>
-    rename(
-      `Grouping Factor` = grp,
-      `Random Effect` = var1,
-      Variance = vcov,
-      SD = sdcor
-    ) |>
-    select(`Grouping Factor`, `Random Effect`, Variance, SD)
+  # lme4 VarCorr coerces to a data frame; glmmTMB does not — fall back to broom.mixed
+  random <- tryCatch({
+    as.data.frame(VarCorr(model)) |>
+      mutate(across(where(is.numeric), round, digits = digits)) |>
+      rename(
+        `Grouping Factor` = grp,
+        `Random Effect`   = var1,
+        Variance          = vcov,
+        SD                = sdcor
+      ) |>
+      select(`Grouping Factor`, `Random Effect`, Variance, SD)
+  }, error = function(e) {
+    broom.mixed::tidy(model, effects = "ran_pars") |>
+      mutate(across(where(is.numeric), round, digits = digits)) |>
+      select(any_of(c("group", "component", "term", "estimate"))) |>
+      rename(any_of(c(
+        `Grouping Factor` = "group",
+        Component         = "component",
+        `Random Effect`   = "term",
+        SD                = "estimate"
+      )))
+  })
 
   ft_random <- flextable(random) |>
     set_caption("Random Effects") |>
