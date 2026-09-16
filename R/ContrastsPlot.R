@@ -18,9 +18,9 @@ plot_contrasts <- function(model, formula, followup, x_lab = "Follow-Up (Months)
   title <- paste0(model@predictor_variable, " Estimated Contrasts.")
   y_lab <- paste0(model@predictor_variable, " Mean Difference (95% CI)")
   log_note <- .log_note(model)
-  caption <- paste0(model@name, ". ", deparse(formula(model@lm)),
-                    if (nzchar(log_note)) paste0("\n", log_note),
-                    collapse = " ")
+  formula_str <- paste(deparse(formula(model@lm)), collapse = " ")
+  caption <- paste0(model@name, ". ", formula_str,
+                    if (nzchar(log_note)) paste0("\n", log_note))
 
   # 2. Setup Robust Color Mapping
   # Get all unique contrast names that actually exist in the data

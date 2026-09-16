@@ -2,7 +2,7 @@
 table_model_summary <- function(model, digits = 3) {
 
   # 1️⃣ Model info ----
-  model_formula <- deparse(formula(model))
+  model_formula <- paste(deparse(formula(model)), collapse = " ")
   method <- ifelse("lmerMod" %in% class(model) && lme4::getME(model, "REML"),
                    "REML", "ML")
   n_obs <- nobs(model)
@@ -34,7 +34,8 @@ table_model_summary <- function(model, digits = 3) {
       SE = std.error,
       Statistic = statistic,
       `p-value` = p.value
-    )
+    ) |>
+    select(any_of(c("Term", "Estimate", "SE", "Statistic", "p-value")))
 
   ft_fixed <- flextable(fixed) |>
     set_caption("Fixed Effects") |>

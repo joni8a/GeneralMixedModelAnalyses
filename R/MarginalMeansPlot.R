@@ -30,9 +30,9 @@ plot_marginal_means <- function(model, formula, followup,
   title <- paste0(outcome_var, " Estimated Marginal Means")
   y_lab <- paste0(outcome_var, " Mean (95% CI)")
   log_note <- .log_note(model)
-  caption <- paste0(model@name, ". ", deparse(formula(model@lm)),
-                    if (nzchar(log_note)) paste0("\n", log_note),
-                    collapse = " ")
+  formula_str <- paste(deparse(formula(model@lm)), collapse = " ")
+  caption <- paste0(model@name, ". ", formula_str,
+                    if (nzchar(log_note)) paste0("\n", log_note))
 
   if(append_zero == TRUE) {
     new_rows <- data.frame(

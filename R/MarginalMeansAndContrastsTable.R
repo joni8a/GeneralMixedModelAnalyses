@@ -62,9 +62,9 @@ table_emm_contrasts <- function(model,
 
   caption <- paste0(model@predictor_variable, ", Marginal Means (95% CI) and Contrasts (95% CI).")
   log_note <- .log_note(model)
-  footnote <- paste0(model@name, ". ", deparse(formula(model@lm)),
-                     if (nzchar(log_note)) paste0(" ", log_note),
-                     collapse = " ")
+  formula_str <- paste(deparse(formula(model@lm)), collapse = " ")
+  footnote <- paste0(model@name, ". ", formula_str,
+                     if (nzchar(log_note)) paste0(" ", log_note))
 
   if (isTRUE(optional_format)) {
     available_groups <- unique(as.character(model@data[[factorVariable]]))
