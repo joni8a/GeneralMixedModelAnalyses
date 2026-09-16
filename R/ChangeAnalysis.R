@@ -3,6 +3,30 @@
 # "Differences of Differences" for dynamic RSA models.
 # It now also shows per-group changes alongside the difference.
 
+#' Consecutive intervals across a follow-up grid.
+#'
+#' Turns a follow-up vector into the list of adjacent pairs that
+#' `table_change_analysis()` expects, so every visit-to-visit change is tested
+#' rather than a single hand-picked interval. Needed whenever a result claims a
+#' group stabilised at a particular visit: the intervals before and after that
+#' visit have to be tested too.
+#'
+#' @param followup Numeric vector of follow-up levels, in order.
+#' @return A list of `c(from, to)` pairs, ready to pass as `intervals`.
+#' @examples
+#' consecutive_intervals(c(1.5, 3, 6, 12, 24, 60))
+#' # [[1]] 1.5 3   [[2]] 3 6   [[3]] 6 12   [[4]] 12 24   [[5]] 24 60
+#' @export
+consecutive_intervals <- function(followup) {
+  if (length(followup) < 2)
+    stop("`followup` needs at least 2 levels to form an interval.")
+  if (anyDuplicated(followup))
+    stop("`followup` must not contain duplicates.")
+
+  lapply(seq_len(length(followup) - 1L),
+         function(i) c(followup[i], followup[i + 1L]))
+}
+
 #' @export
 table_change_analysis <- function(model_container, formula, followup, intervals) {
 
@@ -60,8 +84,11 @@ table_change_analysis <- function(model_container, formula, followup, intervals)
       Group                = as.character(.data[[factorVariable]]),
       `Change (95% CI)`    = paste0(estimate, " (", lower.CL, " - ", upper.CL, ")"),
       `Difference (95% CI)` = "",
-      p_value              = NA_real_,
-      p_fmt                = "",
+      # The per-group change is tested as well as estimated, so a claim that a
+      # group stabilised over an interval can be read off its own row rather
+      # than only from the difference-of-differences.
+      p_value              = p.value,
+      p_fmt                = if_else(p.value < 0.001, "< 0.001", as.character(p.value)),
       row_type             = "group"
     ) %>%
     select(Interval, Group, `Change (95% CI)`,

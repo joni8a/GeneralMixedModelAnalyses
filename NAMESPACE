@@ -3,6 +3,7 @@
 export(ModelContainer)
 export(NewModelContainer)
 export(analyse_residuals)
+export(consecutive_intervals)
 export(plot_contrasts)
 export(plot_marginal_means)
 export(plot_violin_distribution)
