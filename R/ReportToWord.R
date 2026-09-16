@@ -60,7 +60,10 @@ report_to_word <- function(title,
                            include_raw_emmeans = FALSE,
                            optional_emm_format = FALSE,
                            optional_emm_group_1 = NULL,
-                           optional_emm_group_2 = NULL
+                           optional_emm_group_2 = NULL,
+                           # Optional, and last, so existing callers are unaffected.
+                           # A named list of flextables from table_change_matrix().
+                           fn_table_change_matrix = NULL
                            ) {
 
   # Optional: (re)generate EMM table from wrapper-level settings.
@@ -165,6 +168,26 @@ report_to_word <- function(title,
       body_add_par("Change Analysis (Difference in Change)", style = "heading 1") %>%
       body_add_flextable(fn_table_change) %>%
       body_add_break()
+  }
+
+  # -- Change between every pair of follow-ups, within group --
+  # Its own landscape section: the rest of the document is portrait, which is
+  # too narrow for a matrix whose every cell carries an estimate and interval.
+  if (!is.null(fn_table_change_matrix)) {
+    doc <- doc %>%
+      body_add_par("Change Between Follow-Up Pairs (Within Group)", style = "heading 1")
+
+    for (nm in names(fn_table_change_matrix)) {
+      doc <- doc %>%
+        body_add_par(nm, style = "heading 2") %>%
+        body_add_flextable(fn_table_change_matrix[[nm]])
+    }
+
+    doc <- doc %>%
+      body_end_block_section(block_section(prop_section(
+        page_size = page_size(orient = "landscape"),
+        type      = "nextPage"
+      )))
   }
 
   # -- EMM & Contrast Table --

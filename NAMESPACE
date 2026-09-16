@@ -2,8 +2,10 @@
 
 export(ModelContainer)
 export(NewModelContainer)
+export(all_intervals)
 export(analyse_residuals)
 export(consecutive_intervals)
+export(table_change_matrix)
 export(plot_contrasts)
 export(plot_marginal_means)
 export(plot_violin_distribution)
