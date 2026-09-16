@@ -147,6 +147,23 @@ test_that("the footnote names the adjustment and the family size", {
   expect_match(none[["A"]]$footer$dataset[[1]][1], "unadjusted across")
 })
 
+test_that("an extra note is appended after the generated footnote", {
+  f   <- fit_fixture()
+  msg <- "Pairs spanning the 24-month visit cross a device change."
+  out <- table_change_matrix(f$mc, ~ Group * Month, f$fu, note = msg)
+
+  foot <- out[["A"]]$footer$dataset[[1]]
+  expect_length(foot, 2)
+  expect_match(foot[1], "Holm-adjusted")   # generated line stays first
+  expect_identical(foot[2], msg)
+
+  # and it reaches every matrix, including the between-group one
+  both <- table_change_matrix(f$mc, ~ Group * Month, f$fu,
+                              note = msg, include_between = TRUE)
+  for (nm in names(both))
+    expect_identical(both[[nm]]$footer$dataset[[1]][2], msg)
+})
+
 test_that("include_between adds exactly one table and needs 2 groups", {
   f <- fit_fixture()
   out <- table_change_matrix(f$mc, ~ Group * Month, f$fu, include_between = TRUE)

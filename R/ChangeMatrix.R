@@ -61,6 +61,10 @@ all_intervals <- function(followup) {
 #'   groups appear in the data.
 #' @param include_between If TRUE, append a matrix of the between-group
 #'   difference in change. Requires exactly 2 groups.
+#' @param note Optional extra footnote line(s), appended after the generated
+#'   one. Use it for a caveat the function cannot know about — a measurement
+#'   device that changed partway through follow-up, say, which makes the pairs
+#'   spanning it something other than a change in the thing being measured.
 #' @param body_font_size,header_font_size Font sizes.
 #' @return A named list of flextables, one per group, plus
 #'   `"Difference in change"` when `include_between = TRUE`. Pass it to
@@ -75,6 +79,7 @@ table_change_matrix <- function(model_container,
                                 phase_labels     = NULL,
                                 group_labels     = NULL,
                                 include_between  = FALSE,
+                                note             = NULL,
                                 body_font_size   = 8,
                                 header_font_size = 9) {
 
@@ -140,7 +145,7 @@ table_change_matrix <- function(model_container,
     sprintf(paste0("%.", digits, "f (%.", digits, "f", value_sep, "%.", digits, "f)"),
             e, lo, hi)
 
-  note <- .adjust_note(adjust, n_pairs)
+  footer <- c(.adjust_note(adjust, n_pairs), note)
 
   build <- function(d, caption) {
     d <- d %>% mutate(cell = fmt(estimate, lower.CL, upper.CL),
@@ -173,7 +178,7 @@ table_change_matrix <- function(model_container,
       align(j = "From", align = "left", part = "body") %>%
       bold(j = "From", part = "body") %>%
       valign(valign = "top", part = "body") %>%
-      add_footer_lines(note) %>%
+      add_footer_lines(footer) %>%
       flextable::fontsize(size = body_font_size - 1L, part = "footer") %>%
       autofit()
 
